@@ -139,7 +139,7 @@ I built this bot and maintain a production version with unit tests, CI/CD, Docke
 
 Stack: discord.js v14 · JavaScript · SQLite · PostgreSQL · Express · Docker · GitHub Actions
 
-Order a custom Discord bot on VGen https://vgen.ai/u/Thefonze74065
+Order a custom Discord bot on VGen https://vgen.co/Thefonze7
 Contact me for a free quote
 
 ---
