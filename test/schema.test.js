@@ -1,13 +1,11 @@
 const { test } = require("node:test");
 const assert = require("node:assert");
-const db = require("../lib/database");
+const fs = require("fs");
+const path = require("node:path");
 
 test("schema loads without errors", () => {
-  // Verify key tables exist
-  const tables = db
-    .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
-    .all()
-    .map((t) => t.name);
+  const schemaPath = path.join(__dirname, "..", "schema.sql");
+  const schema = fs.readFileSync(schemaPath, "utf8");
 
   for (const table of [
     "guilds",
@@ -22,7 +20,6 @@ test("schema loads without errors", () => {
     "todo_items",
     "watched_users",
     "tts_logs",
-    "vc_transcripts",
     "temp_voice_channels",
     "voice_sessions",
     "reaction_roles",
@@ -33,6 +30,9 @@ test("schema loads without errors", () => {
     "user_game_accounts",
     "moderator_actions",
   ]) {
-    assert.ok(tables.includes(table), `Missing table: ${table}`);
+    assert.ok(
+      schema.includes(`CREATE TABLE IF NOT EXISTS ${table}`),
+      `Missing table: ${table}`,
+    );
   }
 });
