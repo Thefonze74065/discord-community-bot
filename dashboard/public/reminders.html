@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reminders - Divine Buddha</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.0/dist/vue.global.prod.js"></script>
+  </head>
+  <body>
+    <div id="navbar-app"></div>
+    <div id="app" class="container py-4">
+      <h2 class="mb-4">Reminders Configuration</h2>
+      <div class="alert alert-info mb-4">
+        Use this page for scheduled announcements such as Daily Reset, Weekly
+        Reset, and Group Diagnosis. These are managed as cron-based reminders,
+        not in the server configuration page.
+      </div>
+      <div class="mb-3 text-end">
+        <button class="btn btn-success" @click="openCreateModal">
+          + Create Reminder
+        </button>
+      </div>
+      <div v-if="loading" class="text-center my-5">
+        <div class="spinner-border text-light" role="status"></div>
+      </div>
+      <div v-else-if="reminders.length > 0">
+        <table class="table table-dark table-bordered">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Channel</th>
+              <th>Ping Role</th>
+              <th>Cron</th>
+              <th>Message</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="reminder in reminders" :key="reminder.id">
+              <td>{{ reminder.name }}</td>
+              <td>{{ getChannelName(reminder.channelId) }}</td>
+              <td>{{ getRoleName(reminder.roleId) }}</td>
+              <td><code>{{ reminder.cron }}</code></td>
+              <td class="text-truncate" style="max-width: 300px">
+                {{ reminder.message }}
+              </td>
+              <td>
+                <button
+                  class="btn btn-primary btn-sm me-2"
+                  @click="openEditModal(reminder)"
+                >
+                  Edit
+                </button>
+                <button
+                  class="btn btn-danger btn-sm"
+                  @click="deleteReminder(reminder.id)"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-else class="text-center text-muted py-5">
+        <p>No reminders configured yet.</p>
+        <p class="small">
+          Click "+ Create Reminder" to add your first reminder.
+        </p>
+      </div>
+      <!-- Create Modal -->
+      <div
+        v-if="showCreateModal"
+        class="modal d-block"
+        tabindex="-1"
+        style="background-color: rgba(0, 0, 0, 0.5)"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Create Reminder</h5>
+              <button
+                type="button"
+                class="btn-close"
+                @click="showCreateModal = false"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="newReminder.name"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Channel (Optional)</label>
+                <channel-select
+                  v-model="newReminder.channelId"
+                  placeholder="Default (Reminder Channel)"
+                ></channel-select>
+                <div class="form-text">
+                  Leave empty to use the guild's configured reminder channel.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Ping Role (Optional)</label>
+                <role-select
+                  v-model="newReminder.roleId"
+                  :guild-id="selectedGuildId"
+                  placeholder="None"
+                ></role-select>
+                <div class="form-text">
+                  Select a role to ping when the reminder is sent.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Cron Expression</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="newReminder.cron"
+                  placeholder="e.g. 0 9 * * *"
+                />
+                <div class="form-text">
+                  Use UTC time.
+                  <a href="https://crontab.guru/" target="_blank">Help</a>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Message</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="newReminder.message"
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                class="btn btn-secondary"
+                @click="showCreateModal = false"
+              >
+                Cancel
+              </button>
+              <button class="btn btn-primary" @click="createReminder">
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Edit Modal -->
+      <div
+        v-if="showEditModal"
+        class="modal d-block"
+        tabindex="-1"
+        style="background-color: rgba(0, 0, 0, 0.5)"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Edit Reminder</h5>
+              <button
+                type="button"
+                class="btn-close"
+                @click="showEditModal = false"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="editingReminder.name"
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Channel (Optional)</label>
+                <channel-select
+                  v-model="editingReminder.channelId"
+                  placeholder="Default (Reminder Channel)"
+                ></channel-select>
+                <div class="form-text">
+                  Leave empty to use the guild's configured reminder channel.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Ping Role (Optional)</label>
+                <role-select
+                  v-model="editingReminder.roleId"
+                  :guild-id="selectedGuildId"
+                  placeholder="None"
+                ></role-select>
+                <div class="form-text">
+                  Select a role to ping when the reminder is sent.
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Cron Expression</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="editingReminder.cron"
+                  placeholder="e.g. 0 9 * * *"
+                />
+                <div class="form-text">
+                  Use UTC time.
+                  <a href="https://crontab.guru/" target="_blank">Help</a>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Message</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="editingReminder.message"
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showEditModal = false">
+                Cancel
+              </button>
+              <button class="btn btn-primary" @click="updateReminder">
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/js/components.js"></script>
+    <script src="/js/nav.js"></script>
+    <script src="/js/reminders.js"></script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+body {
+  background-color: #212529;
+  color: #f8f9fa;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-card {
+  max-width: 400px;
+  width: 100%;
+  padding: 2rem;
+  background-color: #2b3035;
+  border: 1px solid #495057;
+  border-radius: 0.5rem;
+  text-align: center;
+}
+.btn-discord {
+  background-color: #5865f2;
+  color: white;
+  font-weight: bold;
+}
+.btn-discord:hover {
+  background-color: #4752c4;
+  color: white;
+}

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moderator Activity - Divine Buddha Bot</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/discord-embed.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">Divine Buddha Bot</a>
+        <button
+          class="btn btn-outline-light"
+          type="button"
+          onclick="window.location.href = '/index.html'"
+        >
+          Dashboard
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="app" class="container mt-4">
+      <div v-if="loading" class="text-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
+
+      <div v-else>
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1>Moderator Activity</h1>
+          <div>
+            <label for="timeRange" class="form-label me-2">Time Range:</label>
+            <select
+              id="timeRange"
+              v-model="selectedRange"
+              @change="fetchStats"
+              class="form-select d-inline-block w-auto"
+            >
+              <option value="7">Last 7 Days</option>
+              <option value="14">Last 14 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="60">Last 60 Days</option>
+              <option value="90">Last 90 Days</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="card bg-primary text-white">
+              <div class="card-body">
+                <h6 class="card-title">Total Actions</h6>
+                <h2>{{ stats.totalActions }}</h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-success text-white">
+              <div class="card-body">
+                <h6 class="card-title">Active Moderators</h6>
+                <h2>{{ Object.keys(stats.byModerator).length }}</h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+              <div class="card-body">
+                <h6 class="card-title">Most Common Action</h6>
+                <h2>{{ mostCommonAction }}</h2>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-info text-white">
+              <div class="card-body">
+                <h6 class="card-title">Avg. Daily Actions</h6>
+                <h2>{{ avgDailyActions }}</h2>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Types Breakdown -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5>Action Types Distribution</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div
+                v-for="(count, action) in stats.actionTypes"
+                :key="action"
+                class="col-md-3 mb-3"
+              >
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-capitalize">{{ action }}:</span>
+                  <strong>{{ count }}</strong>
+                </div>
+                <div class="progress" style="height: 5px">
+                  <div
+                    class="progress-bar"
+                    :style="{
+                      width: (count / stats.totalActions * 100) + '%'
+                    }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Timeline Chart -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5>Activity Timeline</h5>
+          </div>
+          <div class="card-body">
+            <canvas id="activityChart" height="100"></canvas>
+          </div>
+        </div>
+
+        <!-- Moderator Activity Overview -->
+        <div class="card mb-4">
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h5 class="mb-0">Moderator Activity Overview</h5>
+            <button
+              @click="sortBy = sortBy === 'total' ? 'recent' : 'total'"
+              class="btn btn-sm btn-outline-primary"
+            >
+              Sort by: {{ sortBy === 'total' ? 'Total Actions' : 'Most Recent'
+              }}
+            </button>
+          </div>
+          <div class="card-body">
+            <p class="text-muted small mb-3">
+              <strong>Note:</strong> Command usage statistics show only a
+              partial view of moderation activity. Many important moderation
+              duties (such as monitoring chat, providing support, and making
+              judgment calls) are not reflected in these numbers.
+            </p>
+            <div class="table-responsive">
+              <table class="table table-dark table-hover">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Moderator</th>
+                    <th>Total Actions</th>
+                    <th>Last Active</th>
+                    <th>Actions Breakdown</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(mod, index) in sortedModerators" :key="mod.id">
+                    <td>{{ index + 1 }}</td>
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <img
+                          :src="getUserAvatar(mod.id)"
+                          class="rounded-circle me-2"
+                          width="32"
+                          height="32"
+                          alt="Avatar"
+                        />
+                        <span>{{ getUserDisplay(mod.id) }}</span>
+                      </div>
+                    </td>
+                    <td><strong>{{ mod.total }}</strong></td>
+                    <td>{{ formatDate(mod.lastActive) }}</td>
+                    <td>
+                      <span
+                        v-for="(count, action) in mod.actions"
+                        :key="action"
+                        class="badge bg-secondary me-1"
+                      >
+                        {{ action }}: {{ count }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h5>Recent Actions (Last 50)</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-dark table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Moderator</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="action in stats.recentActions" :key="action.id">
+                    <td>{{ formatTimestamp(action.timestamp) }}</td>
+                    <td>{{ getUserDisplay(action.moderatorId) }}</td>
+                    <td>
+                      <span
+                        class="badge"
+                        :class="getActionBadgeClass(action.action)"
+                      >
+                        {{ action.action }}
+                      </span>
+                    </td>
+                    <td>{{ action.targetTag || action.targetId || 'N/A' }}</td>
+                    <td>{{ action.reason || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/mod-activity.js"></script>
+  </body>
+</html>

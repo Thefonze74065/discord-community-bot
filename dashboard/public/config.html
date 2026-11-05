@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Divine Buddha - Configuration</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  </head>
+  <body>
+    <div id="navbar-app"></div>
+    <div id="app" class="d-flex flex-column flex-grow-1">
+      <!-- Main Content -->
+      <div class="container-fluid flex-grow-1 overflow-auto p-4">
+        <div v-if="loading" class="text-center mt-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <div v-else class="row justify-content-center">
+          <div class="col-12 col-lg-10 col-xl-8">
+            <!-- Guild Selector -->
+            <div class="card mb-4">
+              <div class="card-body">
+                <!-- moved Birthday Announcement Channel to main config below -->
+                <label class="form-label fw-bold"
+                  >Select Server to Configure</label
+                >
+                <select
+                  class="form-select form-select-lg"
+                  v-model="selectedGuildId"
+                >
+                  <option value="" disabled>Choose a server...</option>
+                  <option
+                    v-for="guild in adminGuilds"
+                    :key="guild.id"
+                    :value="guild.id"
+                  >
+                    {{ guild.name }}
+                  </option>
+                </select>
+                <div
+                  v-if="adminGuilds.length === 0"
+                  class="form-text text-warning"
+                >
+                  You do not have Administrator permissions in any servers with
+                  the bot.
+                </div>
+              </div>
+            </div>
+
+            <div v-if="selectedGuildId && config">
+              <!-- Feature Toggles -->
+              <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                  <h5 class="mb-0">
+                    <i class="bi bi-toggle-on me-2"></i>Modules
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modLeveling"
+                          v-model="config.moduleLevelingEnabled"
+                        />
+                        <label class="form-check-label" for="modLeveling"
+                          >Leveling System</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modTempVc"
+                          v-model="config.moduleTempVcEnabled"
+                        />
+                        <label class="form-check-label" for="modTempVc"
+                          >Temporary Voice Channels</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modLogging"
+                          v-model="config.moduleLoggingEnabled"
+                        />
+                        <label class="form-check-label" for="modLogging"
+                          >Logging System</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modAutoMod"
+                          v-model="config.moduleAutoModEnabled"
+                        />
+                        <label class="form-check-label" for="modAutoMod"
+                          >AutoMod System</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modReminders"
+                          v-model="config.moduleRemindersEnabled"
+                        />
+                        <label class="form-check-label" for="modReminders"
+                          >Reminders</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modGiveaways"
+                          v-model="config.moduleGiveawaysEnabled"
+                        />
+                        <label class="form-check-label" for="modGiveaways"
+                          >Giveaways</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modBirthdays"
+                          v-model="config.moduleBirthdaysEnabled"
+                        />
+                        <label class="form-check-label" for="modBirthdays"
+                          >Birthdays</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modWelcome"
+                          v-model="config.moduleWelcomeEnabled"
+                        />
+                        <label class="form-check-label" for="modWelcome"
+                          >Welcome Messages</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modModmail"
+                          v-model="config.moduleModmailEnabled"
+                        />
+                        <label class="form-check-label" for="modModmail"
+                          >Modmail</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modReactionRoles"
+                          v-model="config.moduleReactionRolesEnabled"
+                        />
+                        <label class="form-check-label" for="modReactionRoles"
+                          >Reaction Roles</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modRoleMenus"
+                          v-model="config.moduleRoleMenusEnabled"
+                        />
+                        <label class="form-check-label" for="modRoleMenus"
+                          >Role Menus</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modTts"
+                          v-model="config.moduleTtsEnabled"
+                        />
+                        <label class="form-check-label" for="modTts"
+                          >Text-to-Speech</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modNewAccountGuard"
+                          v-model="config.moduleNewAccountGuardEnabled"
+                        />
+                        <label class="form-check-label" for="modNewAccountGuard"
+                          >New Account Guard</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="modCasino"
+                          v-model="config.moduleCasinoEnabled"
+                        />
+                        <label class="form-check-label" for="modCasino"
+                          >Casino Games</label
+                        >
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="tiaoGoodToFonze"
+                          v-model="config.tiaoGoodToFonze"
+                        />
+                        <label class="form-check-label" for="tiaoGoodToFonze"
+                          >Has Tiao been good to Fonze?</label
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Roles Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-shield-lock me-2"></i>Roles
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Admin Role</label>
+                      <select class="form-select" v-model="config.adminRoleId">
+                        <option :value="null">None</option>
+                        <option
+                          v-for="role in roles"
+                          :key="role.id"
+                          :value="role.id"
+                          :style="{ color: role.color !== '#000000' ? role.color : 'inherit' }"
+                        >
+                          {{ role.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">Bypasses permissions checks.</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Moderator Role</label>
+                      <select
+                        class="form-select"
+                        v-model="config.moderatorRoleId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="role in roles"
+                          :key="role.id"
+                          :value="role.id"
+                          :style="{ color: role.color !== '#000000' ? role.color : 'inherit' }"
+                        >
+                          {{ role.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">Can use moderation commands.</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Trial Moderator Role</label>
+                      <select
+                        class="form-select"
+                        v-model="config.trialModeratorRoleId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="role in roles"
+                          :key="role.id"
+                          :value="role.id"
+                          :style="{ color: role.color !== '#000000' ? role.color : 'inherit' }"
+                        >
+                          {{ role.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Limited moderation permissions.
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Booster Color Role</label>
+                      <select
+                        class="form-select"
+                        v-model="config.boosterColorRoleId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="role in roles"
+                          :key="role.id"
+                          :value="role.id"
+                          :style="{ color: role.color !== '#000000' ? role.color : 'inherit' }"
+                        >
+                          {{ role.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Role that boosters can toggle for color.
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Mute Role</label>
+                      <select class="form-select" v-model="config.muteRoleId">
+                        <option :value="null">None</option>
+                        <option
+                          v-for="role in roles"
+                          :key="role.id"
+                          :value="role.id"
+                          :style="{ color: role.color !== '#000000' ? role.color : 'inherit' }"
+                        >
+                          {{ role.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Role applied when a user is muted.
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label"
+                        >New Account Guard Mute Role</label
+                      >
+                      <select
+                        class="form-select"
+                        v-model="config.newAccountGuardMuteRoleId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="role in roles"
+                          :key="role.id"
+                          :value="role.id"
+                          :style="{ color: role.color !== '#000000' ? role.color : 'inherit' }"
+                        >
+                          {{ role.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Role applied only by New Account Guard auto-mutes.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Welcome & Birthday Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-door-open me-2"></i>Welcome & Birthdays
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Welcome Channel</label>
+                    <select
+                      class="form-select"
+                      v-model="config.welcomeChannelId"
+                    >
+                      <option :value="null">Disabled</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Sends a short welcome message when a user joins.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label"
+                      >Birthday Announcement Channel</label
+                    >
+                    <select
+                      class="form-select"
+                      v-model="config.birthdayAnnouncementChannelId"
+                    >
+                      <option :value="null">Disabled</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Channel where birthday messages will be posted. If not
+                      set, will use Welcome or Reminder channel.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Birthday Role</label>
+                    <select class="form-select" v-model="config.birthdayRoleId">
+                      <option :value="null">None</option>
+                      <option
+                        v-for="role in roles"
+                        :key="role.id"
+                        :value="role.id"
+                      >
+                        @{{ role.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Role to ping in birthday announcements.
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Pronoun Roles JSON</label>
+                    <textarea
+                      class="form-control font-monospace"
+                      rows="6"
+                      v-model="config.birthdayPronounRoles"
+                      placeholder='[{"roleName":"He/Him","subject":"he","object":"him"}]'
+                    ></textarea>
+                    <div class="form-text">
+                      JSON array of pronoun-role mappings. Each entry can use
+                      <code>roleId</code> or <code>roleName</code>, plus
+                      <code>subject</code> and <code>object</code>.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- TTS Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-chat-square-text me-2"></i>Text-to-Speech
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Name Overrides JSON</label>
+                    <textarea
+                      class="form-control font-monospace"
+                      rows="6"
+                      v-model="config.ttsNameOverrides"
+                      placeholder='[{"userId":"123456789012345678","alias":"Blind Daoist"}]'
+                    ></textarea>
+                    <div class="form-text">
+                      JSON array of user ID to spoken-name overrides for TTS.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modmail Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-envelope me-2"></i>Modmail
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Modmail Category</label>
+                    <select
+                      class="form-select"
+                      v-model="config.modmailCategoryId"
+                    >
+                      <option :value="null">Disabled</option>
+                      <option
+                        v-for="cat in categories"
+                        :key="cat.id"
+                        :value="cat.id"
+                      >
+                        {{ cat.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Category where new modmail tickets will be created.
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Modmail Logs Channel</label>
+                    <select
+                      class="form-select"
+                      v-model="config.modmailLogsChannelId"
+                    >
+                      <option :value="null">Disabled</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Channel where HTML transcripts of deleted tickets will be
+                      sent.
+                    </div>
+                  </div>
+
+                  <hr />
+
+                  <div class="mb-3">
+                    <label class="form-label">Send Modmail Panel</label>
+                    <div class="input-group">
+                      <select
+                        class="form-select"
+                        v-model="modmailPanelChannelId"
+                      >
+                        <option value="" disabled>Select a channel...</option>
+                        <option
+                          v-for="channel in textChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          #{{ channel.name }}
+                        </option>
+                      </select>
+                      <button
+                        class="btn btn-primary"
+                        @click="sendModmailPanel"
+                        :disabled="!modmailPanelChannelId || sendingPanel"
+                      >
+                        <span
+                          v-if="sendingPanel"
+                          class="spinner-border spinner-border-sm me-2"
+                        ></span>
+                        Send Panel
+                      </button>
+                    </div>
+                    <div class="form-text">
+                      Sends the "Contact Staff" embed with the button to the
+                      selected channel.
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    <a
+                      :href="'transcripts.html?guild_id=' + selectedGuildId"
+                      class="btn btn-outline-info w-100"
+                    >
+                      <i class="bi bi-file-text me-2"></i>View Transcripts
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Logging Configuration -->
+              <div class="card mb-4" v-if="config.moduleLoggingEnabled">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-journal-text me-2"></i>Logging
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Moderation Logs Channel</label>
+                      <select
+                        class="form-select"
+                        v-model="config.moderationLogsChannelId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="channel in textChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          #{{ channel.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Bans, Kicks, Timeouts, Command Usage.
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label"
+                        >Message/Member Logs Channel</label
+                      >
+                      <select
+                        class="form-select"
+                        v-model="config.messageLogsChannelId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="channel in textChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          #{{ channel.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Edits, Deletes, Joins, Leaves, Voice Activity.
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Join/Leave Logs Channel</label>
+                      <select
+                        class="form-select"
+                        v-model="config.joinLeaveLogsChannelId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="channel in textChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          #{{ channel.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        User joins, leaves.
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Image Logs Channel</label>
+                      <select
+                        class="form-select"
+                        v-model="config.imageLogsChannelId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="channel in textChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          #{{ channel.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        All images sent in the server will be copied here.
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label"
+                        >VC Text Chat Transcripts Channel</label
+                      >
+                      <select
+                        class="form-select"
+                        v-model="config.vcTranscriptChannelId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="channel in textChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          #{{ channel.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Transcripts of voice channel text chats will be saved
+                        here when VCs are deleted.
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label"
+                        >Ignored Channels (Whitelist)</label
+                      >
+                      <div class="card bg-dark border-secondary">
+                        <div
+                          class="card-body p-2"
+                          style="max-height: 200px; overflow-y: auto"
+                        >
+                          <div
+                            v-for="channel in textChannels"
+                            :key="channel.id"
+                            class="form-check"
+                          >
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              :value="channel.id"
+                              :id="'ignore-' + channel.id"
+                              v-model="config.loggingIgnoreChannelIds"
+                            />
+                            <label
+                              class="form-check-label"
+                              :for="'ignore-' + channel.id"
+                            >
+                              #{{ channel.name }}
+                            </label>
+                          </div>
+                          <div
+                            v-for="channel in voiceChannels"
+                            :key="channel.id"
+                            class="form-check"
+                          >
+                            <input
+                              class="form-check-input"
+                              type="checkbox"
+                              :value="channel.id"
+                              :id="'ignore-' + channel.id"
+                              v-model="config.loggingIgnoreChannelIds"
+                            />
+                            <label
+                              class="form-check-label"
+                              :for="'ignore-' + channel.id"
+                            >
+                              🔊 {{ channel.name }}
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-text">
+                        Events originating from these channels will NOT be
+                        logged.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Temp VC Configuration -->
+              <div class="card mb-4" v-if="config.moduleTempVcEnabled">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-mic me-2"></i>Temporary Voice Channels
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Trigger Channel</label>
+                      <select
+                        class="form-select"
+                        v-model="config.tempVCChannelId"
+                      >
+                        <option :value="null">None</option>
+                        <option
+                          v-for="channel in voiceChannels"
+                          :key="channel.id"
+                          :value="channel.id"
+                        >
+                          🔊 {{ channel.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        Joining this channel creates a new VC.
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Category</label>
+                      <select
+                        class="form-select"
+                        v-model="config.tempVCCategoryId"
+                      >
+                        <option :value="null">Same as Trigger</option>
+                        <option
+                          v-for="cat in categories"
+                          :key="cat.id"
+                          :value="cat.id"
+                        >
+                          📂 {{ cat.name }}
+                        </option>
+                      </select>
+                      <div class="form-text">Where new VCs are created.</div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Name Format</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        v-model="config.tempVCNameFormat"
+                        placeholder="{username}'s VC"
+                      />
+                      <div class="form-text">
+                        Use <code>{username}</code> as a placeholder.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AFK VC Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-moon me-2"></i>AFK Voice Channel
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">AFK VC Channel</label>
+                    <select class="form-select" v-model="config.afkVcChannelId">
+                      <option :value="null">None</option>
+                      <option
+                        v-for="channel in voiceChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        🔊 {{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Users can be moved here when AFK or for moderation.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Leveling Configuration -->
+              <div class="card mb-4" v-if="config.moduleLevelingEnabled">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-graph-up-arrow me-2"></i>Leveling
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label"
+                      >Level Up Notification Channel</label
+                    >
+                    <select
+                      class="form-select"
+                      v-model="config.levelUpChannelId"
+                    >
+                      <option :value="null">Same as Message (Context)</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Giveaway Channel Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-gift me-2"></i>Giveaway Channel
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Default Giveaway Channel</label>
+                    <select
+                      class="form-select"
+                      v-model="config.giveawayChannelId"
+                    >
+                      <option :value="null">Not Set</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      This channel will be used as the default for adopting and
+                      creating giveaways.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gambling Channel & Settings Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-cash-coin me-2"></i>Gambling Settings
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Dedicated Gambling Channel</label>
+                    <select
+                      class="form-select"
+                      v-model="config.gambleChannelId"
+                    >
+                      <option :value="null">Not Set</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      This channel will be used for all gambling-related
+                      commands and games.
+                    </div>
+                  </div>
+
+                  <hr />
+                  <h6 class="mb-1">🪡 Casino Games (Golden Needles)</h6>
+                  <div class="form-text mb-3">
+                    /coinflip, /dice, /slots and /blackjack use Golden
+                    Needles, a just-for-fun currency. Turn the module on with
+                    the "Casino Games" toggle. If a gambling channel is set,
+                    games only work there.
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label d-block">Enabled Games</label>
+                    <div
+                      class="form-check form-check-inline"
+                      v-for="game in ['coinflip', 'dice', 'slots', 'blackjack', 'pot']"
+                      :key="game"
+                    >
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        :id="'casinoGame-' + game"
+                        :value="game"
+                        v-model="config.casinoGamesEnabled"
+                      />
+                      <label
+                        class="form-check-label"
+                        :for="'casinoGame-' + game"
+                        >/{{ game }}</label
+                      >
+                    </div>
+                  </div>
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Minimum Bet</label>
+                      <input
+                        type="number"
+                        min="1"
+                        class="form-control"
+                        v-model.number="config.casinoMinBet"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Maximum Bet</label>
+                      <input
+                        type="number"
+                        min="1"
+                        class="form-control"
+                        v-model.number="config.casinoMaxBet"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Cooldown (seconds)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        v-model.number="config.casinoCooldownSeconds"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Starting Balance</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        v-model.number="config.casinoStartingBalance"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Daily Reward</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        v-model.number="config.casinoDailyAmount"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Streak Bonus (per day)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        v-model.number="config.casinoStreakBonus"
+                      />
+                      <div class="form-text">Capped at 7 days.</div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Daily Loss Cap</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        v-model.number="config.casinoDailyLossCap"
+                      />
+                      <div class="form-text">0 = no cap.</div>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="casinoTransfers"
+                      v-model="config.casinoTransfersEnabled"
+                    />
+                    <label class="form-check-label" for="casinoTransfers"
+                      >Allow members to give needles (/needles give)</label
+                    >
+                  </div>
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="casinoChatDrip"
+                      v-model="config.casinoChatDripEnabled"
+                    />
+                    <label class="form-check-label" for="casinoChatDrip"
+                      >Earn needles per message XP award</label
+                    >
+                  </div>
+                  <div class="mt-2" v-if="config.casinoChatDripEnabled">
+                    <label class="form-label small" for="casinoChatDripAmount"
+                      >Needles per chat reward</label
+                    >
+                    <input
+                      type="number"
+                      min="0"
+                      id="casinoChatDripAmount"
+                      class="form-control form-control-sm w-auto"
+                      placeholder="Default: 1"
+                      v-model.number="config.casinoChatDripAmount"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-4">
+                <div class="card-body">
+                  <h6 class="mb-1">⏱️ Timing &amp; Limits</h6>
+                  <p class="text-muted small mb-3">
+                    Leave a field blank to use the built-in default shown in
+                    it.
+                  </p>
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Chat XP cooldown (seconds)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 30"
+                        v-model.number="config.messageXpCooldownSeconds"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Reaction XP cooldown (seconds)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 30"
+                        v-model.number="config.reactionXpCooldownSeconds"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Watched-user message alert cooldown (minutes)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 30"
+                        v-model.number="config.watchMessageAlertCooldownMinutes"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">New-account guard age (days)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 30"
+                        v-model.number="config.newAccountThresholdDays"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Alms: balance below</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 50"
+                        v-model.number="config.almsThreshold"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Alms: amount given</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 100"
+                        v-model.number="config.almsAmount"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Alms: hours between payouts</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 6"
+                        v-model.number="config.almsIntervalHours"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Daily streak bonus cap (days)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 7"
+                        v-model.number="config.maxStreakDays"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Blackjack hand timeout (seconds)</label>
+                      <input
+                        type="number"
+                        min="10"
+                        class="form-control"
+                        placeholder="Default: 120"
+                        v-model.number="config.blackjackHandTimeoutSeconds"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Slots spin frames</label>
+                      <input
+                        type="number"
+                        min="1"
+                        class="form-control"
+                        placeholder="Default: 3"
+                        v-model.number="config.slotsSpinFrames"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Slots frame delay (ms)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 700"
+                        v-model.number="config.slotsFrameDelayMs"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Honeypot: delete banned user's messages from last (seconds)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        class="form-control"
+                        placeholder="Default: 3600"
+                        v-model.number="config.honeypotDeleteMessageSeconds"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-4">
+                <div class="card-body">
+                  <div class="mb-4">
+                    <label class="form-label">Level Rewards</label>
+                    <div class="table-responsive mb-2">
+                      <table
+                        class="table table-dark table-bordered align-middle mb-0"
+                      >
+                        <thead>
+                          <tr>
+                            <th style="width: 120px">Level</th>
+                            <th>Rank Role</th>
+                            <th>Color Role</th>
+                            <th style="width: 60px"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="(reward, idx) in config.levelRewards"
+                            :key="reward.level + '-' + reward.roleId + '-' + (reward.colorRoleId || 'none')"
+                          >
+                            <td>{{ reward.level }}</td>
+                            <td>
+                              <span
+                                v-if="roles.find(r => r.id === reward.roleId)"
+                              >
+                                <span
+                                  :style="{ color: roles.find(r => r.id === reward.roleId).color !== '#000000' ? roles.find(r => r.id === reward.roleId).color : '' }"
+                                >
+                                  {{ roles.find(r => r.id ===
+                                  reward.roleId).name }}
+                                </span>
+                              </span>
+                              <span v-else class="text-danger"
+                                >(Role not found)</span
+                              >
+                            </td>
+                            <td>
+                              <span v-if="reward.colorRoleId">
+                                <span
+                                  v-if="roles.find(r => r.id === reward.colorRoleId)"
+                                  :style="{ color: roles.find(r => r.id === reward.colorRoleId).color !== '#000000' ? roles.find(r => r.id === reward.colorRoleId).color : '' }"
+                                >
+                                  {{ roles.find(r => r.id ===
+                                  reward.colorRoleId).name }}
+                                </span>
+                                <span v-else class="text-warning">
+                                  (Color role not found) {{ reward.colorRoleId
+                                  }}
+                                </span>
+                              </span>
+                              <span v-else class="text-muted">None</span>
+                            </td>
+                            <td>
+                              <button
+                                class="btn btn-sm btn-danger"
+                                @click="config.levelRewards.splice(idx, 1)"
+                              >
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <input
+                                type="number"
+                                class="form-control form-control-sm"
+                                v-model.number="newLevelReward.level"
+                                min="1"
+                                placeholder="Level"
+                              />
+                            </td>
+                            <td>
+                              <select
+                                class="form-select form-select-sm"
+                                v-model="newLevelReward.roleId"
+                              >
+                                <option value="" disabled>
+                                  Select Role...
+                                </option>
+                                <option
+                                  v-for="role in roles"
+                                  :key="role.id"
+                                  :value="role.id"
+                                  :style="{ color: role.color !== '#000000' ? role.color : '' }"
+                                >
+                                  {{ role.name }}
+                                </option>
+                              </select>
+                            </td>
+                            <td>
+                              <select
+                                class="form-select form-select-sm"
+                                ref="newLevelRewardColorRoleSelect"
+                                v-model="newLevelReward.colorRoleId"
+                                @change="newLevelReward.colorRoleId = $event.target.value"
+                              >
+                                <option value="">None</option>
+                                <option
+                                  v-for="role in roles"
+                                  :key="'color-' + role.id"
+                                  :value="role.id"
+                                  :style="{ color: role.color !== '#000000' ? role.color : '' }"
+                                >
+                                  {{ role.name }}
+                                </option>
+                              </select>
+                            </td>
+                            <td>
+                              <button
+                                class="btn btn-sm btn-success"
+                                @click="addLevelReward"
+                                :disabled="!newLevelReward.level || !newLevelReward.roleId"
+                              >
+                                <i class="bi bi-plus"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="form-text">
+                      Each level can unlock a rank role (kept as highest-earned
+                      only) and an optional color role for the /setcolor
+                      command.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reminder Settings -->
+              <div class="card mb-4" v-if="config.moduleRemindersEnabled">
+                <div
+                  class="card-header d-flex align-items-center justify-content-between"
+                >
+                  <h5 class="mb-0">
+                    <i class="bi bi-alarm me-2"></i>Reminders
+                  </h5>
+                  <a class="btn btn-sm btn-outline-info" href="/reminders.html">
+                    Open Reminders Page
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div class="alert alert-secondary mb-0">
+                    Scheduled announcements like Daily Reset, Weekly Reset, and
+                    Group Diagnosis are managed on the Reminders page using
+                    cron-based reminders.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Honeypot Channel Configuration -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-bug me-2"></i>Honeypot Channel
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Honeypot Channel</label>
+                    <select
+                      class="form-select"
+                      v-model="config.honeypotChannelId"
+                    >
+                      <option :value="null">Not Set</option>
+                      <option
+                        v-for="channel in textChannels"
+                        :key="channel.id"
+                        :value="channel.id"
+                      >
+                        #{{ channel.name }}
+                      </option>
+                    </select>
+                    <div class="form-text">
+                      Anyone who posts in this channel is banned and their
+                      messages from the last hour are deleted. Admins,
+                      moderators and trial moderators are exempt. The bot posts
+                      a warning in the channel; make sure it can view, send in
+                      and ban members.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- AutoMod Configuration -->
+              <div class="card mb-4" v-if="config.moduleAutoModEnabled">
+                <div class="card-header">
+                  <h5 class="mb-0">
+                    <i class="bi bi-shield-exclamation me-2"></i>AutoMod
+                  </h5>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Ping Limit</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model.number="config.autoModPingLimit"
+                        min="1"
+                      />
+                      <div class="form-text">
+                        Max mentions per message before deletion.
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Attachment Limit</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model.number="config.autoModAttachmentLimit"
+                        min="0"
+                      />
+                      <div class="form-text">
+                        Max attachments per message before deletion.
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label"
+                        >Bad Words (Whole Word Match)</label
+                      >
+                      <textarea
+                        class="form-control"
+                        v-model="config.autoModBadWords"
+                        rows="3"
+                        placeholder="rape, ass, hell"
+                      ></textarea>
+                      <div class="form-text">
+                        Matches whole words only. "rape" will NOT match "grape".
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label"
+                        >Strict Bad Words (Partial Match)</label
+                      >
+                      <textarea
+                        class="form-control"
+                        v-model="config.autoModStrictWords"
+                        rows="3"
+                        placeholder="nigg, fagg"
+                      ></textarea>
+                      <div class="form-text text-danger">
+                        Matches ANY part of a word. "rape" WILL match "grape".
+                        Use with caution.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Save Button -->
+              <div class="d-grid gap-2 mb-5">
+                <button
+                  class="btn btn-success btn-lg"
+                  @click="saveConfig"
+                  :disabled="saving"
+                >
+                  <span
+                    v-if="saving"
+                    class="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  {{ saving ? 'Saving...' : 'Save Configuration' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/nav.js"></script>
+    <script src="js/config.js"></script>
+  </body>
+</html>
