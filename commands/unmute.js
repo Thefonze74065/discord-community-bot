@@ -23,9 +23,9 @@ module.exports = {
       const reason = interaction.options.getString("reason") || "No reason provided";
 
       const guildConfig = getGuildStmt.get(interaction.guild.id);
-      if (!guildConfig || (!guildConfig.mute_role_id && !guildConfig.new_account_guard_mute_role_id)) {
+      if (!guildConfig || !guildConfig.mute_role_id) {
         return interaction.editReply({
-          content: "Neither the Mute Role nor the New Account Guard Mute Role is configured for this server. Please ask an admin to set one up in the dashboard.",
+          content: "The Mute Role is not configured for this server. Please ask an admin to set one up in the dashboard.",
         });
       }
 
@@ -43,8 +43,9 @@ module.exports = {
         return interaction.editReply({ content: "You cannot unmute this user because they have a higher or equal rank to you." });
       }
 
-      const muteRoleIds = [...new Set([guildConfig.mute_role_id, guildConfig.new_account_guard_mute_role_id].filter(Boolean))];
-      const appliedMuteRoleIds = muteRoleIds.filter((roleId) => targetMember.roles.cache.has(roleId));
+      const appliedMuteRoleIds = targetMember.roles.cache.has(guildConfig.mute_role_id)
+        ? [guildConfig.mute_role_id]
+        : [];
 
       if (appliedMuteRoleIds.length === 0) {
         return interaction.editReply({ content: "This user is not muted." });

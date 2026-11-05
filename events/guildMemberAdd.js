@@ -81,9 +81,7 @@ module.exports = {
           `[INFO] Added auto-note for new account: ${member.user.tag} (${member.id})`,
         );
 
-        const guardMuteRoleId =
-          guildConfig.new_account_guard_mute_role_id ||
-          guildConfig.mute_role_id;
+        const guardMuteRoleId = guildConfig.mute_role_id;
         if (guardMuteRoleId) {
           const muteRole = member.guild.roles.cache.get(guardMuteRoleId);
           if (muteRole) {

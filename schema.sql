@@ -1,5 +1,4 @@
 -- SQLite schema for discord-community-bot (public lite repo)
--- Ported from Divine-Buddha's Prisma schema, adapted for better-sqlite3.
 -- All ID columns are TEXT (Discord snowflakes or sqlite randomblob IDs).
 -- Booleans are stored as INTEGER (0/1).
 -- JSON arrays/objects are stored as TEXT (SQLite JSON1 extension).
@@ -17,8 +16,6 @@ CREATE TABLE IF NOT EXISTS guilds (
     -- Channel / role IDs (TEXT, nullable)
     birthday_announcement_channel_id TEXT,
     birthday_role_id TEXT,
-    healer_elections_channel_id TEXT,
-    honeypot_channel_id TEXT,
     level_up_channel_id TEXT,
     giveaway_channel_id TEXT,
     gamble_channel_id TEXT,
@@ -27,9 +24,7 @@ CREATE TABLE IF NOT EXISTS guilds (
     moderator_role_id TEXT,
     trial_moderator_role_id TEXT,
     admin_role_id TEXT,
-    booster_color_role_id TEXT,
     mute_role_id TEXT,
-    new_account_guard_mute_role_id TEXT,
     moderation_logs_channel_id TEXT,
     message_logs_channel_id TEXT,
     join_leave_logs_channel_id TEXT,
@@ -38,26 +33,13 @@ CREATE TABLE IF NOT EXISTS guilds (
     modmail_category_id TEXT,
     modmail_logs_channel_id TEXT,
     reset_reminder_channel_id TEXT,
-    group_diagnosis_role_id TEXT,
-    group_diagnosis_thread_id TEXT,
-    daily_reset_role_id TEXT,
-    daily_reset_thread_id TEXT,
-    weekly_reset_role_id TEXT,
-    weekly_reset_thread_id TEXT,
-    afk_vc_channel_id TEXT,
     temp_vc_channel_id TEXT,
     temp_vc_category_id TEXT,
 
     -- Strings
     temp_vc_name_format TEXT DEFAULT "{username}'s VC",
-    group_diagnosis_message TEXT,
-    daily_reset_message TEXT,
-    weekly_reset_message TEXT,
 
     -- Integers
-    group_diagnosis_time_before INTEGER DEFAULT 60,
-    daily_reset_time_before INTEGER DEFAULT 60,
-    weekly_reset_time_before INTEGER DEFAULT 60,
     house_cut_percent INTEGER DEFAULT 10,
     casino_min_bet INTEGER DEFAULT 10,
     casino_max_bet INTEGER DEFAULT 5000,
@@ -84,10 +66,6 @@ CREATE TABLE IF NOT EXISTS guilds (
     module_tts_enabled INTEGER DEFAULT 1,
     module_new_account_guard_enabled INTEGER DEFAULT 1,
     module_casino_enabled INTEGER DEFAULT 0,
-    group_diagnosis_enabled INTEGER DEFAULT 1,
-    daily_reset_enabled INTEGER DEFAULT 1,
-    weekly_reset_enabled INTEGER DEFAULT 1,
-    tiao_good_to_fonze INTEGER DEFAULT 0,
 
     -- Tunable overrides (nullable)
     message_xp_cooldown_seconds INTEGER,
@@ -102,7 +80,6 @@ CREATE TABLE IF NOT EXISTS guilds (
     blackjack_hand_timeout_seconds INTEGER,
     slots_spin_frames INTEGER,
     slots_frame_delay_ms INTEGER,
-    honeypot_delete_message_seconds INTEGER,
 
     -- JSON config (TEXT, SQLite JSON1)
     casino_games_enabled TEXT DEFAULT '["coinflip","dice","slots","blackjack"]',
@@ -110,10 +87,7 @@ CREATE TABLE IF NOT EXISTS guilds (
     tts_name_overrides TEXT,
     birthday_pronoun_roles TEXT,
     auto_mod_bad_words TEXT DEFAULT '["nigg","cunt"]',
-    auto_mod_strict_words TEXT DEFAULT '[]',
-    tts_name_overrides_json TEXT,
-    birthday_pronoun_roles_json TEXT,
-    tiaogoodtofonze_json TEXT
+    auto_mod_strict_words TEXT DEFAULT '[]'
 );
 
 -- ---------------------------------------------------------------------------
@@ -355,23 +329,6 @@ CREATE INDEX IF NOT EXISTS idx_tts_logs_user ON tts_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_tts_logs_timestamp ON tts_logs(timestamp);
 
 -- ---------------------------------------------------------------------------
--- VC transcripts
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS vc_transcripts (
-    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-    guild_id TEXT NOT NULL,
-    channel_id TEXT NOT NULL,
-    channel_name TEXT NOT NULL,
-    message_count INTEGER DEFAULT 0,
-    transcript_path TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    deleted_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_vc_transcripts_guild ON vc_transcripts(guild_id);
-CREATE INDEX IF NOT EXISTS idx_vc_transcripts_deleted ON vc_transcripts(deleted_at);
-
--- ---------------------------------------------------------------------------
 -- Temp voice channels
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS temp_voice_channels (
@@ -496,44 +453,3 @@ CREATE INDEX IF NOT EXISTS idx_moderator_actions_moderator ON moderator_actions(
 CREATE INDEX IF NOT EXISTS idx_moderator_actions_timestamp ON moderator_actions(timestamp);
 CREATE INDEX IF NOT EXISTS idx_moderator_actions_guild_mod ON moderator_actions(guild_id, moderator_id);
 CREATE INDEX IF NOT EXISTS idx_moderator_actions_guild_ts ON moderator_actions(guild_id, timestamp);
-
--- ---------------------------------------------------------------------------
--- Legacy: gambles (kept so existing data is not lost)
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS gambles (
-    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-    guild_id TEXT NOT NULL,
-    channel_id TEXT NOT NULL,
-    message_id TEXT,
-    creator_id TEXT NOT NULL,
-    description TEXT NOT NULL,
-    type TEXT NOT NULL,
-    num_results INTEGER DEFAULT 2,
-    result_names TEXT, -- JSON array
-    ended INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- ---------------------------------------------------------------------------
--- Legacy: gamble entries (kept so existing data is not lost)
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS gamble_entries (
-    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-    gamble_id TEXT NOT NULL,
-    user_id TEXT NOT NULL,
-    bet_type TEXT NOT NULL,
-    bet_amount INTEGER NOT NULL,
-    result_index INTEGER DEFAULT 1,
-    original_level_amount INTEGER,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(gamble_id, user_id)
-);
-
--- ---------------------------------------------------------------------------
--- Legacy: house XP (kept so existing data is not lost)
--- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS house_xp (
-    id INTEGER PRIMARY KEY DEFAULT 1,
-    xp INTEGER DEFAULT 0,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);

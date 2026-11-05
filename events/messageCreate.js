@@ -1,7 +1,5 @@
 const { Events } = require("discord.js");
 const { getSession, addToQueue } = require("../lib/tts");
-const { ensureHealerElectionsNotice } = require("../lib/healerElectionsNotice");
-const { handleHoneypotMessage } = require("../lib/honeypot");
 const { isTtsEllipsis, prepareTtsText } = require("../lib/messageHelpers");
 const { handleWatchedMessage } = require("../lib/watchAlerts");
 const { handleMessageMediaLogging } = require("../lib/messageLogging");
@@ -37,17 +35,9 @@ module.exports = {
 
     if (message.author.bot || !message.guild) return;
 
-    if (await handleHoneypotMessage(message, guildConfig)) return;
-
     if (await handleTtsAutoRead(message, guildConfig)) return;
 
     if (!guildConfig) return;
-
-    if (
-      guildConfig.healer_elections_channel_id === message.channel.id
-    ) {
-      await ensureHealerElectionsNotice(message.channel, { refresh: true });
-    }
 
     await handleWatchedMessage(message, guildConfig);
 

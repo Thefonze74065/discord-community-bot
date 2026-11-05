@@ -4,7 +4,6 @@ const db = require("../lib/database");
 const logger = require("../lib/logger");
 const { withTimeout } = require("../lib/timers");
 
-const getGuildStmt = db.prepare("SELECT * FROM guilds WHERE id = ?");
 const getUserLevelStmt = db.prepare("SELECT * FROM user_levels WHERE user_id = ? AND guild_id = ?");
 const getLevelRewardsStmt = db.prepare(
   "SELECT * FROM level_rewards WHERE guild_id = ? AND level <= ? AND color_role_id IS NOT NULL ORDER BY level ASC",
@@ -14,8 +13,7 @@ async function getSelectableColorChoices(interaction, input = "") {
   const guildId = interaction.guild.id;
   const userId = interaction.user.id;
 
-  const [guildConfig, userLevel] = [
-    withTimeout(getGuildStmt.get(guildId), 2000, () => null),
+  const [, userLevel] = [
     withTimeout(getUserLevelStmt.get(userId, guildId), 2000, () => null),
   ];
 
@@ -27,10 +25,6 @@ async function getSelectableColorChoices(interaction, input = "") {
       if (!reward.color_role_id) continue;
       byRole.set(reward.color_role_id, { unlockedLevel: reward.level, source: "rank" });
     }
-  }
-
-  if (interaction.member.premiumSince && guildConfig?.booster_color_role_id) {
-    byRole.set(guildConfig.booster_color_role_id, { unlockedLevel: null, source: "booster" });
   }
 
   const search = String(input || "").toLowerCase();
