@@ -1,6 +1,9 @@
 const { test, describe, beforeEach, afterEach, mock } = require("node:test");
 const assert = require("node:assert/strict");
 
+// Replace lib/database.js with the in-memory mock so tests work on
+// Node versions where better-sqlite3 has no prebuilt binary.
+require("./helpers/fakeDb");
 const db = require("../lib/database");
 const { __memStore__: memStore } = db;
 
